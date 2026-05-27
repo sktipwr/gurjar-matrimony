@@ -1,65 +1,88 @@
-import Image from "next/image";
+import { fetchProfiles, getUniqueLocations } from "@/lib/getData";
+import Directory from "@/components/Directory";
 
-export default function Home() {
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  let profiles: Awaited<ReturnType<typeof fetchProfiles>> = [];
+  let error: string | null = null;
+
+  try {
+    profiles = await fetchProfiles();
+  } catch (e) {
+    error = (e as Error).message;
+  }
+
+  const locations = getUniqueLocations(profiles);
+  const maleCount = profiles.filter((p) => p.gender === "Male").length;
+  const femaleCount = profiles.filter((p) => p.gender === "Female").length;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen flex flex-col" style={{ fontFamily: "var(--font-sans)" }}>
+
+      {/* ── Top bar ── */}
+      {/* sticky only on sm+ — on mobile it scrolls away */}
+      <header style={{ background: "var(--c-red)" }} className="sm:sticky sm:top-0 sm:z-40 shadow-md">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2">
+            <span className="text-2xl leading-none">🪷</span>
+            <div>
+              <p className="text-white font-bold text-[17px] leading-tight tracking-tight">
+                Gurjar Matrimony
+              </p>
+              <p className="text-red-200 text-[10px] leading-tight tracking-wide uppercase">
+                Community Directory
+              </p>
+            </div>
+          </div>
+
+          {/* Stats pills */}
+          <div className="flex items-center gap-2">
+            <div className="text-center bg-white/15 rounded-lg px-3 py-1.5 hidden sm:block">
+              <p className="text-white font-bold text-lg leading-none">{profiles.length}</p>
+              <p className="text-red-200 text-[10px] leading-none mt-0.5">Profiles</p>
+            </div>
+            <div className="text-center bg-white/15 rounded-lg px-3 py-1.5">
+              <p className="text-white font-bold text-lg leading-none">{maleCount}</p>
+              <p className="text-red-200 text-[10px] leading-none mt-0.5">Grooms</p>
+            </div>
+            <div className="text-center bg-white/15 rounded-lg px-3 py-1.5">
+              <p className="text-white font-bold text-lg leading-none">{femaleCount}</p>
+              <p className="text-red-200 text-[10px] leading-none mt-0.5">Brides</p>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
+      </header>
+
+      {/* ── Notice banner ── */}
+      <div style={{ background: "var(--c-gold-light)", borderBottom: "1px solid #F0D9A0" }}>
+        <p className="max-w-5xl mx-auto px-4 py-2 text-center text-[12px]"
+           style={{ color: "var(--c-gold)" }}>
+          For queries or to remove an entry, call{" "}
+          <a href="tel:9811017754" className="font-semibold underline underline-offset-2">
+            9811017754
           </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        </p>
+      </div>
+
+      {/* ── Main content ── */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-6">
+        {error ? (
+          <div className="rounded-2xl p-6 text-center text-sm"
+               style={{ background: "#FEE2E2", color: "var(--c-red)" }}>
+            <p className="font-semibold">Could not load profiles</p>
+            <p className="mt-1 opacity-75">{error}</p>
+          </div>
+        ) : (
+          <Directory profiles={profiles} locations={locations} />
+        )}
       </main>
+
+      {/* ── Footer ── */}
+      <footer className="py-5 text-center text-[11px]" style={{ color: "var(--c-muted)", borderTop: "1px solid var(--c-border)" }}>
+        Gurjar Matrimony · Community directory · Not a commercial service
+      </footer>
     </div>
   );
 }
