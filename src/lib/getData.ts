@@ -1,6 +1,6 @@
 import { Profile } from "@/types/profile";
+import { SHEET_ID } from "./config";
 
-const SHEET_ID = "109-3_kjDRYBeeyxGeRiSlr3MuYmLDw-6q74IY-DVLPo";
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv`;
 
 function parseAge(raw: string): number | null {
