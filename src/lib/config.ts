@@ -6,7 +6,7 @@
 export const SHEET_ID = "109-3_kjDRYBeeyxGeRiSlr3MuYmLDw-6q74IY-DVLPo";
 
 /** Google Form URL for submitting a new matrimony profile */
-export const FORM_URL = "https://forms.gle/REPLACE_WITH_YOUR_FORM_ID";
+export const FORM_URL = "https://forms.gle/wi63mVTfoEt9W11XA";
 
 export const CONTACT_NUMBER = "9811017754";
 
