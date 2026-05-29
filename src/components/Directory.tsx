@@ -18,6 +18,7 @@ const DEFAULT_FILTERS: Filters = {
   location: "",
   minAge: "",
   maxAge: "",
+  fromYear: "",
 };
 
 /* ─── small components ───────────────────────────────── */
@@ -63,6 +64,18 @@ export default function Directory({ profiles, locations }: DirectoryProps) {
   const set = <K extends keyof Filters>(k: K, v: Filters[K]) =>
     setFilters((p) => ({ ...p, [k]: v }));
 
+  // Derive available years from actual profile timestamps
+  const availableYears = useMemo(() => {
+    const years = new Set<string>();
+    profiles.forEach((p) => {
+      try {
+        const y = new Date(p.timestamp).getFullYear();
+        if (!isNaN(y) && y > 2000) years.add(String(y));
+      } catch { /* skip */ }
+    });
+    return Array.from(years).sort();
+  }, [profiles]);
+
   /* ── filtered list ─────────────────────────────────── */
   const filtered = useMemo(() => {
     let r = profiles;
@@ -82,6 +95,13 @@ export default function Directory({ profiles, locations }: DirectoryProps) {
     if (filters.location)         r = r.filter((p) => p.currentLocation.toLowerCase() === filters.location.toLowerCase());
     if (filters.minAge)           r = r.filter((p) => p.age !== null && p.age >= +filters.minAge);
     if (filters.maxAge)           r = r.filter((p) => p.age !== null && p.age <= +filters.maxAge);
+    if (filters.fromYear) {
+      const cutoff = new Date(`${filters.fromYear}-01-01`).getTime();
+      r = r.filter((p) => {
+        try { return new Date(p.timestamp).getTime() >= cutoff; }
+        catch { return false; }
+      });
+    }
     return r;
   }, [profiles, filters]);
 
@@ -90,6 +110,7 @@ export default function Directory({ profiles, locations }: DirectoryProps) {
     !!filters.income,
     !!filters.location,
     !!(filters.minAge || filters.maxAge),
+    !!filters.fromYear,
   ].filter(Boolean).length;
 
   const clearAll = () => {
@@ -114,6 +135,10 @@ export default function Directory({ profiles, locations }: DirectoryProps) {
     (filters.minAge || filters.maxAge) && {
       label: `Age ${filters.minAge || "any"}–${filters.maxAge || "any"}`,
       clear: () => { set("minAge", ""); set("maxAge", ""); },
+    },
+    filters.fromYear && {
+      label: `📅 From ${filters.fromYear}`,
+      clear: () => set("fromYear", ""),
     },
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
@@ -352,6 +377,40 @@ export default function Directory({ profiles, locations }: DirectoryProps) {
                   ))}
                 </div>
               </div>
+
+              {/* Posted after */}
+              {availableYears.length > 0 && (
+                <div>
+                  <FilterLabel>Posted after</FilterLabel>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => set("fromYear", "")}
+                      className="rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all"
+                      style={
+                        !filters.fromYear
+                          ? { background: "var(--c-red)", color: "#fff" }
+                          : { background: "var(--c-red-light)", color: "var(--c-red)" }
+                      }
+                    >
+                      All time
+                    </button>
+                    {availableYears.map((yr) => (
+                      <button
+                        key={yr}
+                        onClick={() => set("fromYear", filters.fromYear === yr ? "" : yr)}
+                        className="rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-all"
+                        style={
+                          filters.fromYear === yr
+                            ? { background: "var(--c-red)", color: "#fff" }
+                            : { background: "var(--c-red-light)", color: "var(--c-red)" }
+                        }
+                      >
+                        {yr}+
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Apply / Clear */}
               <div className="flex gap-3 pt-1">

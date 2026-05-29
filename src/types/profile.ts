@@ -32,4 +32,5 @@ export interface Filters {
   location: string;
   minAge: string;
   maxAge: string;
+  fromYear: string; // "" = all time, "2024" = Jan 2024 onwards
 }
