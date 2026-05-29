@@ -126,6 +126,38 @@ export const INCOME_OPTIONS = [
   "> 30,00,000",
 ];
 
+/**
+ * Convert raw height value to a readable ft/in string.
+ * Handles decimals like 5.1 → 5'1", 5.11 → 5'11", already-formatted strings, and cm.
+ */
+export function formatHeight(raw: string | null | undefined): string | null {
+  if (!raw?.trim()) return null;
+  const h = raw.trim();
+  // Already has ft/inch markers or cm — return as-is
+  if (/['"ftFT]|feet|inch|cms?/.test(h)) return h;
+  // Decimal format: 5.8, 5.11, 6.0
+  const dec = h.match(/^(\d+)\.(\d+)$/);
+  if (dec) return `${dec[1]}'${dec[2]}"`;
+  // Plain integer that looks like feet (4–7)
+  const n = parseInt(h, 10);
+  if (!isNaN(n) && n >= 4 && n <= 7) return `${n}'0"`;
+  // Anything else (e.g. "170 cm") — return as-is
+  return h;
+}
+
+/**
+ * Format a Google Sheets timestamp into "Jan 2024" style.
+ * Sheets exports timestamps as "M/D/YYYY H:MM:SS" or ISO.
+ */
+export function formatSubmittedDate(ts: string | null | undefined): string | null {
+  if (!ts?.trim()) return null;
+  try {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return null;
+    return d.toLocaleDateString("en-IN", { month: "short", year: "numeric" });
+  } catch { return null; }
+}
+
 /** Convert raw income string like "10,00,000 - 15,00,000" → "₹10L – 15L /yr" */
 export function formatIncome(raw: string | null | undefined): string | null {
   if (!raw?.trim() || raw === "No Income") return raw?.trim() || null;

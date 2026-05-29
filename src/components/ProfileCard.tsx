@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Profile } from "@/types/profile";
-import { formatIncome } from "@/lib/getData";
+import { formatIncome, formatHeight, formatSubmittedDate } from "@/lib/getData";
 
 const isFresh = (ts: string) => {
   try { return Date.now() - new Date(ts).getTime() < 30 * 24 * 60 * 60 * 1000; }
@@ -19,7 +19,9 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
     ? "linear-gradient(135deg,#F48FB1,#C2185B)"
     : "linear-gradient(135deg,#90CAF9,#1565C0)";
 
-  const incomeShort = formatIncome(profile.income);
+  const incomeShort  = formatIncome(profile.income);
+  const heightFmt    = formatHeight(profile.height);
+  const submittedDate = formatSubmittedDate(profile.timestamp);
 
   const gotraShort = (() => {
     const g = profile.gotra?.trim();
@@ -31,7 +33,7 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
 
   const subtitle = [
     profile.age ? `${profile.age} yrs` : null,
-    profile.height || null,
+    heightFmt || null,
     gotraShort || null,
   ].filter(Boolean).join(" · ");
 
@@ -119,6 +121,13 @@ export default function ProfileCard({ profile }: { profile: Profile }) {
               </span>
             )}
           </div>
+
+          {/* Submission date */}
+          {submittedDate && (
+            <p className="text-[10px] mt-1" style={{ color: "var(--c-muted)" }}>
+              Added {submittedDate}
+            </p>
+          )}
         </div>
       </div>
 
